@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Finova</title>
-    <link rel="icon" type="image/png" href="Icon.png" />
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js">
-    </script>
+    <title>Finova - Financial Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF & AutoTable CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
-        tailwind.config = { darkMode: 'class' }
+        tailwind.config = { darkMode: 'class' };
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;900&display=swap');
 
         body {
             font-family: 'Noto Sans', sans-serif;
@@ -50,8 +48,7 @@
             }
         }
         @keyframes pulseHighlight {
-            0%,
-            100% {
+            0%, 100% {
                 box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
             }
             50% {
@@ -165,15 +162,15 @@
             transform: translateX(0);
         }
 
-        #pdf-category-select {
+        #pdf-category-select, #currency-select {
             appearance: auto;
             -webkit-appearance: auto;
         }
-        #pdf-category-select option {
+        #pdf-category-select option, #currency-select option {
             background: #fff;
             color: #1e293b;
         }
-        .dark #pdf-category-select option {
+        .dark #pdf-category-select option, .dark #currency-select option {
             background: #1e293b;
             color: #e2e8f0;
         }
@@ -181,6 +178,7 @@
 </head>
 <body class="antialiased text-gray-800 bg-slate-50 dark:bg-slate-950 dark:text-slate-200">
 
+    <!-- Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-500 opacity-0 pointer-events-none bg-white/90 dark:bg-slate-900/90">
         <div class="flex flex-col items-center gap-4">
             <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -188,6 +186,7 @@
         </div>
     </div>
 
+    <!-- App Lock Screen -->
     <div id="lock-screen" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4">
         <div class="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-gray-200 dark:border-slate-700 text-center animate-fadeIn">
             <div class="mb-6">
@@ -195,7 +194,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 <h3 class="text-xl font-black text-indigo-950 dark:text-white">App Locked</h3>
-                <p class="text-gray-500 dark:text-slate-400 text-xs mt-1">Enter your Security Password</p>
+                <p class="text-gray-500 dark:text-slate-400 text-xs mt-1">Enter your SHA-256 Protected Password</p>
             </div>
             <form id="pin-form" class="space-y-4">
                 <input type="password" id="pin-input" placeholder="Type password..." class="w-full text-center text-lg px-4 py-4 bg-gray-50 dark:bg-slate-700 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 dark:text-white" required autofocus>
@@ -205,27 +204,48 @@
         </div>
     </div>
 
+    <!-- Main Application Container -->
     <div id="main-app" class="max-w-7xl mx-auto px-4 py-8">
         <header class="mb-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
             <div class="flex flex-col gap-4">
                 <h1 class="text-4xl font-black text-indigo-950 dark:text-white">Fin<span class="text-indigo-600">ova</span></h1>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <!-- Profile & Actions Dropdown -->
                     <div id="profile-container" class="relative inline-block">
                         <button id="profile-trigger" class="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all">
                             <div class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold">F</div>
                             <p class="text-gray-700 dark:text-slate-200 font-bold text-xs">Local Storage Mode</p>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </button>
-                        <div class="dropdown-menu absolute left-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 z-[100] py-2">
-                            <button id="setup-pin-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">Setup Password</button>
+                        
+                        <div class="dropdown-menu absolute left-0 mt-2 w-60 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 z-[100] py-2">
+                            <button id="setup-pin-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">Setup SHA-256 Password</button>
                             <button id="remove-pin-btn" class="hidden w-full text-left px-4 py-2 text-xs font-bold text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20">Remove Password</button>
                             <button id="lock-now-btn" class="hidden w-full text-left px-4 py-2 text-xs font-bold text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700">Lock Now</button>
+                            <hr class="my-2 border-gray-50 dark:border-slate-700">
+                            
+                            <!-- Currency Selector -->
+                            <div class="px-4 py-2">
+                                <label class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Currency</label>
+                                <select id="currency-select" class="w-full px-2 py-1.5 bg-gray-50 dark:bg-slate-700 border-none rounded-xl text-xs font-bold dark:text-white focus:ring-2 focus:ring-indigo-400 cursor-pointer">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="BDT">BDT (৳)</option>
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="JPY">JPY (¥)</option>
+                                    <option value="CAD">CAD ($)</option>
+                                    <option value="AUD">AUD ($)</option>
+                                </select>
+                            </div>
+
                             <hr class="my-2 border-gray-50 dark:border-slate-700">
                             <button id="export-json-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20">Export Full Backup (.json)</button>
                             <button id="import-json-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20">Import Full Backup (.json)</button>
                             <input type="file" id="json-file-input" class="hidden" accept=".json">
                             <hr class="my-2 border-gray-50 dark:border-slate-700">
 
+                            <!-- Categories Submenu -->
                             <div id="categories-menu-wrapper" class="relative">
                                 <button id="categories-trigger-btn" class="w-full text-left px-4 py-2 text-xs font-bold text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 flex items-center justify-between">
                                     <span>Categories</span>
@@ -236,8 +256,7 @@
                                         <span class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">All Categories</span>
                                         <button id="add-category-btn" type="button" title="Add new category" class="w-6 h-6 flex items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-900 transition-colors text-lg leading-none font-bold shrink-0">+</button>
                                     </div>
-                                    <div id="categories-list-container" class="overflow-y-auto custom-scrollbar flex-1 py-1">
-                                    </div>
+                                    <div id="categories-list-container" class="overflow-y-auto custom-scrollbar flex-1 py-1"></div>
                                     <div id="no-categories-msg" class="hidden text-center text-gray-400 dark:text-slate-500 text-[10px] py-6 px-3">
                                         No categories yet.<br>Add one with the <span class="font-bold text-violet-500">+</span> button.
                                     </div>
@@ -250,6 +269,7 @@
 
                             <hr class="my-2 border-gray-50 dark:border-slate-700">
 
+                            <!-- PDF Category Export -->
                             <div class="px-3 py-2">
                                 <label class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-2">Export Category PDF</label>
                                 <div class="flex gap-1.5">
@@ -270,6 +290,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Theme Toggle -->
                     <button id="theme-toggle" class="relative overflow-hidden p-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700 text-gray-500 dark:text-yellow-400 hover:bg-gray-50 dark:hover:bg-slate-700 transition-all group">
                         <div id="sun-icon-wrapper" class="hidden">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 theme-icon-animate" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -284,6 +306,7 @@
                     </button>
                 </div>
             </div>
+
             <div class="bg-indigo-950 dark:bg-indigo-900 text-white px-10 py-6 rounded-[2rem] shadow-2xl min-w-[250px] text-center border border-white/5">
                 <span id="balance-label" class="text-xs uppercase font-bold tracking-widest text-indigo-300">Total Balance</span>
                 <p id="total-balance" class="text-4xl md:text-5xl font-black mt-2">0.00</p>
@@ -291,6 +314,7 @@
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Left Column: Metrics & Chart -->
             <div class="lg:col-span-4 space-y-6">
                 <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
                     <div class="glass-card bg-white dark:bg-slate-800 p-4 rounded-2xl border-l-4 border-purple-500 shadow-sm">
@@ -323,6 +347,7 @@
                 </div>
             </div>
 
+            <!-- Middle Column: Entry Form -->
             <div class="lg:col-span-3">
                 <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 sticky top-8">
                     <h3 class="text-lg font-bold mb-6 dark:text-white">New Entry</h3>
@@ -350,6 +375,7 @@
                 </div>
             </div>
 
+            <!-- Right Column: History & Filters -->
             <div class="lg:col-span-5">
                 <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-slate-700 min-h-[500px] flex flex-col">
                     <div class="flex flex-col gap-4 mb-6">
@@ -384,12 +410,14 @@
         </div>
     </div>
 
+    <!-- Notification Toast -->
     <div id="notification" class="fixed bottom-8 left-1/2 -translate-x-1/2 translate-y-32 opacity-0 transition-all duration-500 z-[150]">
         <div class="bg-indigo-950 dark:bg-indigo-600 text-white px-8 py-4 rounded-3xl shadow-2xl text-sm font-bold" id="notif-text">Success!</div>
     </div>
 
     <div id="context-hint" class="context-hint">Edit Entry</div>
 
+    <!-- Clear Confirmation Modal -->
     <div id="confirm-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-2xl w-full max-w-xs text-center border border-gray-100 dark:border-slate-700">
             <h3 class="text-lg font-black text-indigo-950 dark:text-white mb-2">Clear History?</h3>
@@ -401,6 +429,7 @@
         </div>
     </div>
 
+    <!-- Edit Entry Modal -->
     <div id="edit-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
         <div class="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-2xl w-full max-w-sm border border-gray-100 dark:border-slate-700 animate-fadeIn">
             <div class="flex items-center gap-3 mb-5">
@@ -439,23 +468,26 @@
     </div>
 
     <script>
+        // State management
         let transactions = JSON.parse(localStorage.getItem('bp_transactions')) || [];
         let customCategories = JSON.parse(localStorage.getItem('bp_custom_categories')) || [];
-        let userPin = localStorage.getItem('bp_pin') || null;
+        let userPinHash = localStorage.getItem('bp_pin_hash') || null;
+        let selectedCurrency = localStorage.getItem('bp_currency') || 'USD';
         let statsChart;
         let activeFilterDate = null;
         let activeFilterType = '';
         let activeSearchText = '';
         let activeCategoryFilter = '';
 
+        // Long press handling
         let longPressTimer = null;
-        let longPressStartX = 0,
-            longPressStartY = 0;
+        let longPressStartX = 0, longPressStartY = 0;
         let editTransactionId = null;
         let isEditModalOpen = false;
         const LONG_PRESS_DURATION = 600;
         const MOVE_THRESHOLD = 12;
 
+        // Element references
         const mainApp = document.getElementById('main-app');
         const lockScreen = document.getElementById('lock-screen');
         const list = document.getElementById('list');
@@ -488,6 +520,7 @@
         const categorySuggestions = document.getElementById('category-suggestions');
         const categorySuggestionsEdit = document.getElementById('category-suggestions-edit');
         const profileContainer = document.getElementById('profile-container');
+        const currencySelect = document.getElementById('currency-select');
 
         const exportCategoriesBtn = document.getElementById('export-categories-btn');
         const importCategoriesBtn = document.getElementById('import-categories-btn');
@@ -496,7 +529,43 @@
         const pdfCategorySelect = document.getElementById('pdf-category-select');
         const exportCategoryPdfBtn = document.getElementById('export-category-pdf-btn');
 
+        // ==========================================
+        // RECOMMENDED FIX 1: SHA-256 Hashing helper
+        // ==========================================
+        async function hashPassword(password) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        // Migration check for legacy raw plaintext pin
+        async function checkAndMigrateLegacyPin() {
+            const legacyPin = localStorage.getItem('bp_pin');
+            if (legacyPin) {
+                const hashed = await hashPassword(legacyPin);
+                localStorage.setItem('bp_pin_hash', hashed);
+                localStorage.removeItem('bp_pin');
+                userPinHash = hashed;
+            }
+        }
+
+        // ====================================================
+        // RECOMMENDED FIX 2: Intl.NumberFormat Currency Helper
+        // ====================================================
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: selectedCurrency,
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
         function init() {
+            checkAndMigrateLegacyPin();
+            currencySelect.value = selectedCurrency;
             setNow();
             initTheme();
             initChart();
@@ -507,6 +576,13 @@
             updateCategoryDatalists();
             populatePdfCategorySelect();
         }
+
+        currencySelect.addEventListener('change', (e) => {
+            selectedCurrency = e.target.value;
+            localStorage.setItem('bp_currency', selectedCurrency);
+            refreshUI();
+            showNotif(`Currency updated to ${selectedCurrency}`);
+        });
 
         function setNow() {
             const now = new Date();
@@ -542,14 +618,14 @@
         };
 
         function checkLockStatus() {
-            if (userPin && !sessionStorage.getItem('bp_unlocked')) {
+            if (userPinHash && !sessionStorage.getItem('bp_unlocked')) {
                 lockScreen.classList.remove('hidden');
                 mainApp.classList.add('opacity-10', 'pointer-events-none');
             } else {
                 lockScreen.classList.add('hidden');
                 mainApp.classList.remove('opacity-10', 'pointer-events-none');
             }
-            if (userPin) {
+            if (userPinHash) {
                 setupPinBtn.classList.add('hidden');
                 removePinBtn.classList.remove('hidden');
                 lockNowBtn.classList.remove('hidden');
@@ -620,8 +696,7 @@
                 allCats.forEach(cat => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
-                    btn.className =
-                        'category-item w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-slate-300 flex items-center justify-between group/cat';
+                    btn.className = 'category-item w-full text-left px-3 py-2 text-xs font-medium text-gray-700 dark:text-slate-300 flex items-center justify-between group/cat';
                     btn.innerHTML = `
                         <span class="truncate">${escapeHtml(cat)}</span>
                         <span class="fill-hint text-[9px] text-violet-500 dark:text-violet-400 font-bold shrink-0 ml-2">Fill ↖</span>
@@ -708,8 +783,7 @@
         function handlePointerDown(e) {
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             const li = getTransactionLi(e.target);
-            if (!li) { clearLongPress();
-                return; }
+            if (!li) { clearLongPress(); return; }
             longPressStartX = e.clientX;
             longPressStartY = e.clientY;
             longPressTimer = setTimeout(() => {
@@ -731,8 +805,7 @@
         function handlePointerUp() { clearLongPress(); }
 
         function clearLongPress() {
-            if (longPressTimer) { clearTimeout(longPressTimer);
-                longPressTimer = null; }
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
             hideContextHint();
         }
 
@@ -752,14 +825,11 @@
             document.getElementById('edit-text').value = txn.text;
             document.getElementById('edit-category').value = txn.category || '';
             document.getElementById('edit-amount').value = txn.amount;
-            document.getElementById('edit-type-label').innerText = txn.type === 'drawings' ? 'WITHDRAWAL' : txn.type
-                .toUpperCase();
+            document.getElementById('edit-type-label').innerText = txn.type === 'drawings' ? 'WITHDRAWAL' : txn.type.toUpperCase();
             const dateObj = new Date(txn.date);
-            const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short',
-            year: 'numeric' });
+            const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
             const displayTime = txn.time ? formatTime12h(txn.time) : '';
-            document.getElementById('edit-datetime').innerText =
-                `${formattedDate}${displayTime ? ' • ' + displayTime : ''}`;
+            document.getElementById('edit-datetime').innerText = `${formattedDate}${displayTime ? ' • ' + displayTime : ''}`;
             if (liElement) liElement.classList.add('editing-highlight');
             editModal.classList.remove('hidden');
             updateCategoryDatalists();
@@ -768,8 +838,7 @@
 
         function closeEditModal() {
             editModal.classList.add('hidden');
-            document.querySelectorAll('#list li.editing-highlight').forEach(li => li.classList.remove(
-                'editing-highlight'));
+            document.querySelectorAll('#list li.editing-highlight').forEach(li => li.classList.remove('editing-highlight'));
             editTransactionId = null;
             isEditModalOpen = false;
             clearLongPress();
@@ -799,12 +868,10 @@
             showNotif("Entry Updated!");
         }
 
-        document.getElementById('edit-form').onsubmit = (e) => { e.preventDefault();
-            saveEdit(); };
+        document.getElementById('edit-form').onsubmit = (e) => { e.preventDefault(); saveEdit(); };
         document.getElementById('cancel-edit').onclick = () => closeEditModal();
         editModal.onclick = (e) => { if (e.target === editModal) closeEditModal(); };
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !editModal.classList.contains(
-                'hidden')) closeEditModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !editModal.classList.contains('hidden')) closeEditModal(); });
 
         function refreshUI(shouldScrollToBottom = false) {
             let filtered = [...transactions];
@@ -824,15 +891,9 @@
             if (activeFilterType) labelParts.push(`Type: ${activeFilterType}`);
             if (activeSearchText.trim() !== '') labelParts.push(`Desc: "${activeSearchText}"`);
             if (activeCategoryFilter.trim() !== '') labelParts.push(`Cat: "${activeCategoryFilter}"`);
-            document.getElementById('balance-label').innerText = labelParts.length ?
-                `Filtered: ${labelParts.join(' & ')}` : "Total Balance";
+            document.getElementById('balance-label').innerText = labelParts.length ? `Filtered: ${labelParts.join(' & ')}` : "Total Balance";
 
-            let income = 0,
-                expense = 0,
-                debt = 0,
-                capital = 0,
-                withdrawal = 0,
-                repayment = 0;
+            let income = 0, expense = 0, debt = 0, capital = 0, withdrawal = 0, repayment = 0;
             filtered.forEach(t => {
                 const a = Number(t.amount) || 0;
                 if (t.type === 'income') income += a;
@@ -845,25 +906,23 @@
 
             const totalBalance = (income + capital + debt) - (expense + withdrawal + repayment);
 
-            document.getElementById('total-income').innerText = income.toFixed(2);
-            document.getElementById('total-expense').innerText = expense.toFixed(2);
-            document.getElementById('total-debt').innerText = (debt - repayment).toFixed(2);
-            document.getElementById('total-capital').innerText = capital.toFixed(2);
-            document.getElementById('total-drawings').innerText = withdrawal.toFixed(2);
-            document.getElementById('total-repayment').innerText = repayment.toFixed(2);
-            document.getElementById('total-balance').innerText = totalBalance.toFixed(2);
+            // Applying Intl.NumberFormat Currency Helper
+            document.getElementById('total-income').innerText = formatCurrency(income);
+            document.getElementById('total-expense').innerText = formatCurrency(expense);
+            document.getElementById('total-debt').innerText = formatCurrency(debt - repayment);
+            document.getElementById('total-capital').innerText = formatCurrency(capital);
+            document.getElementById('total-drawings').innerText = formatCurrency(withdrawal);
+            document.getElementById('total-repayment').innerText = formatCurrency(repayment);
+            document.getElementById('total-balance').innerText = formatCurrency(totalBalance);
 
             if (statsChart) {
                 statsChart.data.labels = ['Capital', 'Withdrawal', 'Income', 'Expense', 'Debt', 'Repayment'];
                 statsChart.data.datasets[0].data = [capital, withdrawal, income, expense, debt, repayment];
-                statsChart.data.datasets[0].backgroundColor = ['#a855f7', '#818cf8', '#10b981', '#ef4444',
-                    '#f59e0b', '#06b6d4'
-                ];
+                statsChart.data.datasets[0].backgroundColor = ['#a855f7', '#818cf8', '#10b981', '#ef4444', '#f59e0b', '#06b6d4'];
                 statsChart.update();
             }
 
-            list.innerHTML = filtered.length ? '' :
-                `<li class="text-center text-gray-400 dark:text-slate-500 text-xs py-10">No entries found</li>`;
+            list.innerHTML = filtered.length ? '' : `<li class="text-center text-gray-400 dark:text-slate-500 text-xs py-10">No entries found</li>`;
             if (transactions.length > 0) clearBtn.classList.remove('hidden');
             else clearBtn.classList.add('hidden');
 
@@ -877,18 +936,14 @@
                 else if (t.type === 'capital') borderCol = 'border-purple-400';
                 else if (t.type === 'repayment') borderCol = 'border-cyan-400';
 
-                li.className =
-                    `flex justify-between items-center p-4 rounded-2xl bg-gray-50 dark:bg-slate-700/50 border-l-4 ${borderCol} animate-fadeIn`;
+                li.className = `flex justify-between items-center p-4 rounded-2xl bg-gray-50 dark:bg-slate-700/50 border-l-4 ${borderCol} animate-fadeIn`;
                 li.setAttribute('data-id', t.id);
                 li.setAttribute('title', 'Right-click or long-press to edit');
 
                 const dateObj = new Date(t.date);
-                const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short',
-                    year: 'numeric' });
+                const formattedDate = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 const displayTime = t.time ? formatTime12h(t.time) : '';
-                const categoryDisplay = t.category ?
-                    `<span class="text-[8px] font-bold bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full ml-2">${escapeHtml(t.category)}</span>` :
-                    '';
+                const categoryDisplay = t.category ? `<span class="text-[8px] font-bold bg-gray-200 dark:bg-slate-600 px-2 py-0.5 rounded-full ml-2">${escapeHtml(t.category)}</span>` : '';
 
                 li.innerHTML = `
                     <div class="flex-1 mr-4 pointer-events-none">
@@ -899,7 +954,7 @@
                         <h4 class="font-bold text-sm text-indigo-950 dark:text-slate-100 break-words leading-tight">${escapeHtml(t.text)}</h4>
                     </div>
                     <div class="flex items-center gap-4 shrink-0">
-                        <span class="font-black text-sm ${(t.type === 'expense' || t.type === 'drawings' || t.type === 'repayment') ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">${t.amount.toFixed(2)}</span>
+                        <span class="font-black text-sm ${(t.type === 'expense' || t.type === 'drawings' || t.type === 'repayment') ? 'text-red-500 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">${formatCurrency(t.amount)}</span>
                         <button onclick="delItem('${t.id}')" class="w-8 h-8 flex items-center justify-center rounded-full text-red-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shrink-0" title="Delete entry">✕</button>
                     </div>`;
                 list.appendChild(li);
@@ -917,10 +972,12 @@
         }
 
         function escapeHtml(str) {
-            return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
-                return m; });
+                return m;
+            });
         }
 
         window.delItem = (id) => {
@@ -931,10 +988,10 @@
             }
         };
 
-        // ─── EXPORT FULL BACKUP ────────────────────────────────────────────────
         exportJsonBtn.onclick = () => {
             const data = {
                 version: 1,
+                currency: selectedCurrency,
                 transactions: transactions,
                 categories: customCategories
             };
@@ -948,10 +1005,9 @@
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            showNotif("Full backup exported (transactions + categories)!");
+            showNotif("Full backup exported!");
         };
 
-        // ─── IMPORT FULL BACKUP (with replace/merge & duplicate check) ──────
         importJsonBtn.onclick = () => jsonFileInput.click();
         jsonFileInput.onchange = (e) => {
             const file = e.target.files[0];
@@ -961,7 +1017,6 @@
                 try {
                     const imported = JSON.parse(event.target.result);
 
-                    // Helper to merge transactions (skip duplicates by id)
                     function mergeTransactions(existing, incoming) {
                         const idSet = new Set(existing.map(t => t.id));
                         let added = 0;
@@ -975,7 +1030,6 @@
                         return added;
                     }
 
-                    // Helper to merge categories (skip duplicates)
                     function mergeCategories(existing, incoming) {
                         let added = 0;
                         incoming.forEach(c => {
@@ -996,27 +1050,29 @@
                                 "Press Cancel to MERGE (add new data, keep existing, skip duplicates)."
                             );
                             if (action) {
-                                // Replace
                                 transactions = imported.transactions;
                                 customCategories = imported.categories;
+                                if (imported.currency) {
+                                    selectedCurrency = imported.currency;
+                                    currencySelect.value = selectedCurrency;
+                                    localStorage.setItem('bp_currency', selectedCurrency);
+                                }
                                 saveCustomCategories();
                                 refreshUI();
                                 populatePdfCategorySelect();
                                 showNotif("Full backup restored (replace)!");
                             } else {
-                                // Merge with duplicate check
                                 const addedTx = mergeTransactions(transactions, imported.transactions);
                                 const addedCat = mergeCategories(customCategories, imported.categories);
                                 saveCustomCategories();
                                 refreshUI();
                                 populatePdfCategorySelect();
-                                showNotif(`Full backup merged! Added ${addedTx} new transactions and ${addedCat} new categories. Duplicates skipped.`);
+                                showNotif(`Full backup merged! Added ${addedTx} new transactions and ${addedCat} new categories.`);
                             }
                         } else {
-                            showNotif("Invalid full backup format: missing transactions or categories.");
+                            showNotif("Invalid full backup format.");
                         }
                     } else if (Array.isArray(imported)) {
-                        // Legacy backup (transactions only)
                         const action = confirm(
                             "This is a legacy backup containing only transactions.\n\n" +
                             "Press OK to REPLACE all existing transactions.\n" +
@@ -1031,7 +1087,7 @@
                             const added = mergeTransactions(transactions, imported);
                             refreshUI();
                             populatePdfCategorySelect();
-                            showNotif(`Transactions merged from legacy backup. Added ${added} new entries. Duplicates skipped.`);
+                            showNotif(`Merged legacy backup. Added ${added} new entries.`);
                         }
                     } else {
                         showNotif("Unrecognized backup format.");
@@ -1044,7 +1100,6 @@
             reader.readAsText(file);
         };
 
-        // ─── EXPORT / IMPORT CATEGORIES (unchanged, but we keep them) ──────
         exportCategoriesBtn.onclick = () => {
             const dataStr = JSON.stringify(customCategories, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
@@ -1072,9 +1127,7 @@
                             showNotif("No categories in file.");
                             return;
                         }
-                        const replace = confirm(
-                            "Do you want to replace all existing categories with the imported ones? Press Cancel to merge instead (duplicates skipped)."
-                            );
+                        const replace = confirm("Do you want to replace all existing categories with imported ones? Press Cancel to merge.");
                         if (replace) {
                             customCategories = imported.filter(c => c.trim().length > 0);
                         } else {
@@ -1104,7 +1157,6 @@
             reader.readAsText(file);
         };
 
-        // ─── PDF GENERATION (unchanged, but we keep it) ──────────────────────
         function generatePdf(data, title, fileNameBase) {
             if (!data || data.length === 0) {
                 showNotif("No data available for report!");
@@ -1114,53 +1166,42 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const isDark = document.documentElement.classList.contains('dark');
-            const theme = isDark ? { bg: [15, 23, 42], header: [79, 70, 229], text: [255, 255, 255], subText: [148,
-                    163, 184
-                ], tableHead: [79, 70, 229], tableRow: [30, 41, 59] } :
-                { bg: [255, 255, 255], header: [79, 70, 229], text: [30, 41, 59], subText: [100, 116, 139],
-                    tableHead: [30, 41, 59], tableRow: [248, 250, 252] };
+            const theme = isDark ? { bg: [15, 23, 42], header: [79, 70, 229], text: [255, 255, 255], subText: [148, 163, 184], tableHead: [79, 70, 229], tableRow: [30, 41, 59] } :
+                { bg: [255, 255, 255], header: [79, 70, 229], text: [30, 41, 59], subText: [100, 116, 139], tableHead: [30, 41, 59], tableRow: [248, 250, 252] };
 
-            if (isDark) { doc.setFillColor(...theme.bg);
-                doc.rect(0, 0, 210, 297, 'F'); }
+            if (isDark) { doc.setFillColor(...theme.bg); doc.rect(0, 0, 210, 297, 'F'); }
 
             doc.setFontSize(24);
             doc.setTextColor(...theme.header);
             doc.text(title, 14, 20);
             doc.setFontSize(10);
             doc.setTextColor(...theme.subText);
-            let reportDateText = `Generated: ${new Date().toLocaleString()}`;
+            let reportDateText = `Generated: ${new Date().toLocaleString()} | Currency: ${selectedCurrency}`;
             doc.text(reportDateText, 14, 28);
 
-            let i = 0,
-                e = 0,
-                d = 0,
-                c = 0,
-                dr = 0,
-                rp = 0;
-            data.forEach(t => { let a = Number(t.amount) || 0; if (t.type === 'income') i +=
-                    a;
+            let i = 0, e = 0, d = 0, c = 0, dr = 0, rp = 0;
+            data.forEach(t => { 
+                let a = Number(t.amount) || 0; 
+                if (t.type === 'income') i += a;
                 else if (t.type === 'expense') e += a;
                 else if (t.type === 'debt') d += a;
                 else if (t.type === 'capital') c += a;
                 else if (t.type === 'drawings') dr += a;
-                else if (t.type === 'repayment') rp += a; });
+                else if (t.type === 'repayment') rp += a; 
+            });
             const bal = (i + c + d) - (e + dr + rp);
 
             doc.autoTable({
                 startY: 40,
-                head: [
-                    ['Capital', 'Withdrawal', 'Income', 'Expense', 'Debt', 'Repayment', 'Net Balance']
-                ],
-                body: [
-                    [c.toFixed(2), dr.toFixed(2), i.toFixed(2), e.toFixed(2), d.toFixed(2), rp.toFixed(2), bal
-                        .toFixed(2)
-                    ]
-                ],
+                head: [['Capital', 'Withdrawal', 'Income', 'Expense', 'Debt', 'Repayment', 'Net Balance']],
+                body: [[
+                    formatCurrency(c), formatCurrency(dr), formatCurrency(i), 
+                    formatCurrency(e), formatCurrency(d), formatCurrency(rp), 
+                    formatCurrency(bal)
+                ]],
                 theme: 'grid',
                 headStyles: { fillColor: theme.header, textColor: [255, 255, 255], fontStyle: 'bold' },
-                bodyStyles: { fillColor: isDark ? [51, 65, 85] : [255, 255, 255], textColor: isDark ? [255, 255,
-                        255
-                    ] : [30, 41, 59] }
+                bodyStyles: { fillColor: isDark ? [51, 65, 85] : [255, 255, 255], textColor: isDark ? [255, 255, 255] : [30, 41, 59] }
             });
 
             const grouped = {};
@@ -1175,7 +1216,7 @@
                 const items = grouped[cat];
                 const total = items.reduce((sum, t) => sum + t.amount, 0);
                 const count = items.length;
-                return [cat, count, total.toFixed(2)];
+                return [cat, count, formatCurrency(total)];
             });
 
             let yPos = doc.lastAutoTable.finalY + 12;
@@ -1186,15 +1227,11 @@
 
             doc.autoTable({
                 startY: yPos,
-                head: [
-                    ['Category', 'Entries', 'Total']
-                ],
+                head: [['Category', 'Entries', 'Total']],
                 body: catSummaryData,
                 theme: isDark ? 'grid' : 'striped',
                 headStyles: { fillColor: theme.tableHead, textColor: [255, 255, 255], fontStyle: 'bold' },
-                bodyStyles: { fillColor: isDark ? theme.tableRow : [255, 255, 255], textColor: isDark ? [255,
-                        255, 255
-                    ] : [30, 41, 59] },
+                bodyStyles: { fillColor: isDark ? theme.tableRow : [255, 255, 255], textColor: isDark ? [255, 255, 255] : [30, 41, 59] },
                 alternateRowStyles: { fillColor: isDark ? [15, 23, 42] : [241, 245, 249] },
                 styles: { font: 'helvetica', fontSize: 10 }
             });
@@ -1208,41 +1245,36 @@
 
                 if (yPos > 250) {
                     doc.addPage();
-                    if (isDark) { doc.setFillColor(...theme.bg);
-                        doc.rect(0, 0, 210, 297, 'F'); }
+                    if (isDark) { doc.setFillColor(...theme.bg); doc.rect(0, 0, 210, 297, 'F'); }
                     yPos = 20;
                 }
 
                 doc.setFontSize(11);
                 doc.setTextColor(...theme.header);
-                doc.text(`${cat}  (${count} entries)  —  Total: ${total.toFixed(2)}`, 14, yPos);
+                doc.text(`${cat}  (${count} entries)  —  Total: ${formatCurrency(total)}`, 14, yPos);
                 yPos += 6;
 
                 const tableData = items.sort((a, b) => a.createdAt - b.createdAt).map(t => [
                     `${new Date(t.date).toLocaleDateString('en-GB')} ${t.time ? formatTime12h(t.time) : ''}`,
                     t.text,
                     t.type === 'drawings' ? 'WITHDRAWAL' : t.type.toUpperCase(),
-                    t.amount.toFixed(2)
+                    formatCurrency(t.amount)
                 ]);
 
                 doc.autoTable({
                     startY: yPos,
-                    head: [
-                        ['Date & Time', 'Description', 'Type', 'Amount']
-                    ],
+                    head: [['Date & Time', 'Description', 'Type', 'Amount']],
                     body: tableData,
                     theme: isDark ? 'grid' : 'striped',
                     headStyles: { fillColor: theme.tableHead, textColor: [255, 255, 255], fontStyle: 'bold' },
-                    bodyStyles: { fillColor: isDark ? theme.tableRow : [255, 255, 255], textColor: isDark ? [
-                            255, 255, 255
-                        ] : [30, 41, 59] },
+                    bodyStyles: { fillColor: isDark ? theme.tableRow : [255, 255, 255], textColor: isDark ? [255, 255, 255] : [30, 41, 59] },
                     alternateRowStyles: { fillColor: isDark ? [15, 23, 42] : [241, 245, 249] },
                     styles: { font: 'helvetica', fontSize: 9 },
                     columnStyles: {
                         0: { cellWidth: 40 },
                         1: { cellWidth: 'auto' },
                         2: { cellWidth: 32 },
-                        3: { cellWidth: 28 }
+                        3: { cellWidth: 35 }
                     }
                 });
 
@@ -1252,13 +1284,12 @@
             const grandTotal = data.reduce((sum, t) => sum + t.amount, 0);
             if (yPos > 270) {
                 doc.addPage();
-                if (isDark) { doc.setFillColor(...theme.bg);
-                    doc.rect(0, 0, 210, 297, 'F'); }
+                if (isDark) { doc.setFillColor(...theme.bg); doc.rect(0, 0, 210, 297, 'F'); }
                 yPos = 20;
             }
             doc.setFontSize(11);
             doc.setTextColor(...theme.header);
-            doc.text(`TOTAL TURNOVER (sum of all entries): ${grandTotal.toFixed(2)}`, 14, yPos + 4);
+            doc.text(`TOTAL TURNOVER (sum of all entries): ${formatCurrency(grandTotal)}`, 14, yPos + 4);
 
             doc.save(`${fileNameBase}.pdf`);
             showNotif("PDF Exported!");
@@ -1276,15 +1307,9 @@
                 const cat = activeCategoryFilter.trim().toLowerCase();
                 filteredForReport = filteredForReport.filter(t => (t.category || '').toLowerCase().includes(cat));
             }
-            if (filteredForReport.length === 0) { showNotif("No data available for report!");
-                return; }
+            if (filteredForReport.length === 0) { showNotif("No data available for report!"); return; }
 
             let fileName = `finova_report_${new Date().toISOString().split('T')[0]}`;
-            if (activeFilterDate) fileName += `_filtered_${activeFilterDate}`;
-            if (activeFilterType) fileName += `_${activeFilterType}`;
-            if (activeSearchText.trim() !== '') fileName += `_search_${activeSearchText}`;
-            if (activeCategoryFilter.trim() !== '') fileName += `_cat_${activeCategoryFilter}`;
-
             generatePdf(filteredForReport, "Finova - Financial Report", fileName);
         };
 
@@ -1306,12 +1331,11 @@
             generatePdf(filtered, `Finova - Category: "${selectedCat}"`, fileName);
         };
 
-        // ─── TRANSACTION FORM ──────────────────────────────────────────────────
+        // Transaction Submission
         document.getElementById('transaction-form').onsubmit = (e) => {
             e.preventDefault();
             const amountVal = parseFloat(document.getElementById('amount').value);
-            if (isNaN(amountVal) || amountVal <= 0) { showNotif("Amount must be a positive number");
-                return; }
+            if (isNaN(amountVal) || amountVal <= 0) { showNotif("Amount must be a positive number"); return; }
             const categoryVal = document.getElementById('category').value.trim();
             const data = {
                 id: crypto.randomUUID(),
@@ -1332,15 +1356,11 @@
             showNotif("Entry Saved!");
         };
 
-        // ─── FILTERS ───────────────────────────────────────────────────────────
-        filterSearchInput.addEventListener('input', (e) => { activeSearchText = e.target.value;
-            refreshUI(); });
-        filterCategoryInput.addEventListener('input', (e) => { activeCategoryFilter = e.target.value;
-            refreshUI(); });
-        filterDate.onchange = (e) => { activeFilterDate = e.target.value;
-            refreshUI(); };
-        filterTypeSelect.onchange = (e) => { activeFilterType = e.target.value;
-            refreshUI(); };
+        // Search & Filters
+        filterSearchInput.addEventListener('input', (e) => { activeSearchText = e.target.value; refreshUI(); });
+        filterCategoryInput.addEventListener('input', (e) => { activeCategoryFilter = e.target.value; refreshUI(); });
+        filterDate.onchange = (e) => { activeFilterDate = e.target.value; refreshUI(); };
+        filterTypeSelect.onchange = (e) => { activeFilterType = e.target.value; refreshUI(); };
         showAllBtn.onclick = () => {
             activeFilterDate = null;
             activeFilterType = '';
@@ -1353,40 +1373,66 @@
             refreshUI();
         };
 
-        // ─── SECURITY ──────────────────────────────────────────────────────────
-        setupPinBtn.onclick = () => { let p = prompt("Enter a new security password:"); if (p && p.trim().length >
-                0) { userPin = p;
-                localStorage.setItem('bp_pin', p);
+        setupPinBtn.onclick = async () => {
+            let p = prompt("Enter a new security password:");
+            if (p && p.trim().length > 0) {
+                userPinHash = await hashPassword(p.trim());
+                localStorage.setItem('bp_pin_hash', userPinHash);
                 sessionStorage.setItem('bp_unlocked', 'true');
                 checkLockStatus();
-                showNotif("Password set!"); } };
-        removePinBtn.onclick = () => { if (confirm("Remove security password?")) { userPin = null;
-                localStorage.removeItem('bp_pin');
+                showNotif("Password set securely (SHA-256)!");
+            }
+        };
+
+        removePinBtn.onclick = () => {
+            if (confirm("Remove security password?")) {
+                userPinHash = null;
+                localStorage.removeItem('bp_pin_hash');
                 sessionStorage.removeItem('bp_unlocked');
                 checkLockStatus();
-                showNotif("Security removed"); } };
-        lockNowBtn.onclick = () => { sessionStorage.removeItem('bp_unlocked');
-            checkLockStatus(); };
-        document.getElementById('pin-form').onsubmit = (e) => { e.preventDefault(); if (document.getElementById(
-                'pin-input').value === userPin) { sessionStorage.setItem('bp_unlocked', 'true');
-                checkLockStatus();
-                document.getElementById('pin-input').value = ''; } else { showNotif("Incorrect Password");
-                document.getElementById('pin-input').value = ''; } };
-        document.getElementById('reset-app').onclick = () => { if (confirm(
-                "DANGER: This will permanently delete ALL data. Continue?")) { localStorage.clear();
-                sessionStorage.clear();
-                location.reload(); } };
+                showNotif("Security removed");
+            }
+        };
 
-        // ─── CLEAR HISTORY ─────────────────────────────────────────────────────
+        lockNowBtn.onclick = () => {
+            sessionStorage.removeItem('bp_unlocked');
+            checkLockStatus();
+        };
+
+        document.getElementById('pin-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const inputVal = document.getElementById('pin-input').value;
+            const inputHash = await hashPassword(inputVal);
+            if (inputHash === userPinHash) {
+                sessionStorage.setItem('bp_unlocked', 'true');
+                checkLockStatus();
+                document.getElementById('pin-input').value = '';
+            } else {
+                showNotif("Incorrect Password");
+                document.getElementById('pin-input').value = '';
+            }
+        };
+
+        document.getElementById('reset-app').onclick = () => {
+            if (confirm("DANGER: This will permanently delete ALL data. Continue?")) {
+                localStorage.clear();
+                sessionStorage.clear();
+                location.reload();
+            }
+        };
+
+        // Clear History Modal
         clearBtn.onclick = () => confirmModal.classList.remove('hidden');
         document.getElementById('cancel-clear').onclick = () => confirmModal.classList.add('hidden');
-        document.getElementById('confirm-clear').onclick = () => { transactions = [];
+        document.getElementById('confirm-clear').onclick = () => {
+            transactions = [];
             confirmModal.classList.add('hidden');
             refreshUI();
             populatePdfCategorySelect();
-            showNotif("History Cleared!"); };
+            showNotif("History Cleared!");
+        };
 
-        // ─── PROFILE DROPDOWN TOGGLE ──────────────────────────────────────────
+        // Profile Dropdown
         const profileTrigger = document.getElementById('profile-trigger');
         profileTrigger.onclick = (e) => {
             e.stopPropagation();
@@ -1403,11 +1449,14 @@
             }
         });
 
-        function showNotif(m) { const n = document.getElementById('notification');
+        function showNotif(m) {
+            const n = document.getElementById('notification');
             document.getElementById('notif-text').innerText = m;
             n.classList.remove('translate-y-32', 'opacity-0');
-            setTimeout(() => n.classList.add('translate-y-32', 'opacity-0'), 2500); }
+            setTimeout(() => n.classList.add('translate-y-32', 'opacity-0'), 2500);
+        }
 
+        // Initialize Chart.js Bar Chart
         function initChart() {
             const isDark = document.documentElement.classList.contains('dark');
             const ctx = document.getElementById('statsChart').getContext('2d');
@@ -1415,9 +1464,11 @@
                 type: 'bar',
                 data: {
                     labels: ['Capital', 'Withdrawal', 'Income', 'Expense', 'Debt', 'Repayment'],
-                    datasets: [{ data: [0, 0, 0, 0, 0, 0], backgroundColor: ['#a855f7', '#818cf8', '#10b981',
-                            '#ef4444', '#f59e0b', '#06b6d4'
-                        ], borderRadius: 8 }]
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#a855f7', '#818cf8', '#10b981', '#ef4444', '#f59e0b', '#06b6d4'],
+                        borderRadius: 8
+                    }]
                 },
                 options: {
                     indexAxis: 'y',
